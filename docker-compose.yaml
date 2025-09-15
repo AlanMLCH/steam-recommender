@@ -1,0 +1,109 @@
+version: '3.9'
+
+
+x-shared-env: &shared_env
+PYTHONUNBUFFERED: "1"
+ARTIFACTS_DIR: "/workspace/artifacts"
+INDEX_DIR: "/workspace/index"
+DATA_DIR: "/workspace/data"
+
+
+services:
+traefik:
+image: traefik:v3.0
+command:
+- --api.insecure=true
+- --providers.file.filename=/etc/traefik/dynamic.yml
+- --providers.file.watch=true
+- --entrypoints.web.address=:80
+ports:
+- "80:80"
+- "8080:8080" # Traefik dashboard
+volumes:
+- ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+- ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:rw
+networks: [ recnet ]
+
+
+gateway:
+build: ./services/gateway
+environment:
+<<: *shared_env
+RERANK_URL: http://traefik/rerank
+RETRIEVAL_URL: http://retrieval:8000
+SLA_P95_MS: ${SLA_P95_MS:-150}
+volumes:
+- ./artifacts:/workspace/artifacts
+- ./index:/workspace/index
+depends_on: [ traefik, retrieval, reranker_champion, reranker_challenger ]
+ports:
+- "8000:8000"
+networks: [ recnet ]
+
+
+retrieval:
+build: ./services/retrieval
+environment:
+<<: *shared_env
+volumes:
+- ./artifacts:/workspace/artifacts
+- ./index:/workspace/index
+- ./data:/workspace/data
+networks: [ recnet ]
+
+
+reranker_champion:
+build: ./services/reranker_champion
+environment:
+<<: *shared_env
+volumes:
+- ./artifacts:/workspace/artifacts
+networks: [ recnet ]
+
+
+reranker_challenger:
+build: ./services/reranker_challenger
+environment:
+<<: *shared_env
+volumes:
+- ./artifacts:/workspace/artifacts
+networks: [ recnet ]
+
+
+watchdog:
+build: ./services/watchdog
+environment:
+DYNAMIC_PATH: /etc/traefik/dynamic.yml
+SLA_P95_MS: ${SLA_P95_MS:-150}
+KPI_MIN: ${KPI_MIN:-0.0}
+GATEWAY_METRICS: http://gateway:8000/metrics_json
+MODE: ${MODE:-canary} # canary|shadow|bluegreen
+CANARY_WEIGHT: ${CANARY_WEIGHT:-10}
+volumes:
+- ./traefik/dynamic.yml:/etc/traefik/dynamic.yml
+depends_on: [ gateway, traefik ]
+networks: [ recnet ]
+
+
+cron:
+build: ./services/cron
+environment:
+<<: *shared_env
+volumes:
+- ./artifacts:/workspace/artifacts
+- ./index:/workspace/index
+- ./data:/workspace/data
+networks: [ recnet ]
+
+
+trainer:
+image: python:3.11-slim
+working_dir: /workspace
+command: bash -lc "pip install -U pip && pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && pip install faiss-cpu fastapi uvicorn numpy pandas scikit-learn && python models/two_tower_train.py && python scripts/build_index.py && bash scripts/build_mar.sh"
+volumes:
+- ./:/workspace
+networks: [ recnet ]
+
+
+networks:
+recnet: {}

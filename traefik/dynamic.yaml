@@ -1,0 +1,21 @@
+http:
+routers:
+rerank:
+rule: PathPrefix(`/rerank`)
+service: rerank-wrr
+services:
+rerank-wrr:
+weighted:
+services:
+- name: champion
+weight: 90
+- name: challenger
+weight: 10
+champion:
+loadBalancer:
+servers:
+- url: http://reranker_champion:8080
+challenger:
+loadBalancer:
+servers:
+- url: http://reranker_challenger:8080

@@ -1,0 +1,8 @@
+api: {}
+providers:
+file:
+filename: /etc/traefik/dynamic.yaml
+watch: true
+entryPoints:
+web:
+address: ":80"
