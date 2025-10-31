@@ -1,44 +1,28 @@
-COMPOSE = docker compose
+.PHONY: build up down data train index api test
 
-
-.PHONY: up down logs train canary shadow-on shadow-off blue green weights
-
+build:
+	docker compose build
 
 up:
-$(COMPOSE) up --build -d traefik retrieval reranker_champion reranker_challenger gateway watchdog cron
-
+	docker compose up -d
 
 down:
-$(COMPOSE) down -v
+	docker compose down
 
-
-logs:
-$(COMPOSE) logs -f --tail=200
-
+data:
+	python scripts/get_data.py
+	python scripts/preprocess_data.py
 
 train:
-$(COMPOSE) run --rm trainer
+	docker run --rm -v $(PWD):/app -w /app --entrypoint python \
+		$(shell docker build -q -f docker/Dockerfile.train .) src/modeling/train.py
 
+index:
+	docker run --rm -v $(PWD):/app -w /app --entrypoint python \
+		$(shell docker build -q -f docker/Dockerfile.train .) src/index/build_faiss.py
 
-canary:
-python scripts/set_weights.py --weight $${W:-10}
+api:
+	docker compose up api
 
-
-shadow-on:
-bash scripts/shadow_on.sh
-
-
-shadow-off:
-bash scripts/shadow_off.sh
-
-
-blue:
-bash scripts/blue_green.sh champion
-
-
-green:
-bash scripts/blue_green.sh challenger
-
-
-weights:
-python scripts/set_weights.py --weight 0 # 0% challenger (100% champion)
+test:
+	pytest -q

@@ -1,44 +1,98 @@
-# Steam Recommender (Two‑Tower + FAISS + Reranker)
+# Game Recommender System
 
+This project is a game recommender system built with a two-tower model, FAISS for efficient similarity search, a FastAPI backend, and a Streamlit dashboard for interacting with the API.
 
-## 1) Train & build index (first time)
-make train
+## Project Structure
 
+The project is organized into the following directories:
 
-## 2) Start the stack
-make up
+- `configs/`: Configuration files for training and service.
+- `data/`: For storing raw and processed data (ignored by git).
+- `artifacts/`: For storing the FAISS index and other generated files (ignored by git).
+- `models/`: For storing trained model checkpoints (ignored by git).
+- `notebooks/`: Jupyter notebooks for exploration, training, and evaluation.
+- `src/`: Source code for the recommender system.
+- `dashboard/`: The Streamlit dashboard application.
+- `tests/`: Unit tests.
+- `docker/`: Dockerfiles for the different services.
 
+## Getting Started
 
-- Gateway API: http://localhost:8000/recommend?user_id=123&k=50&topn=10
-- Traefik dashboard: http://localhost:8080
+### Prerequisites
 
+- Docker
+- Docker Compose
+- make (optional, for convenience)
 
-## 3) Canary & shadow
-# 10% traffic to challenger
-make canary W=10
-# rollback to 0% challenger
-make weights
-# switch blue/green explicitly
-make blue # 100% champion
-make green # 100% challenger (use with caution)
+### Running the Application
 
+1.  **Build the Docker images:**
 
-## 4) Nightly index build & drift
-- Cron container rebuilds FAISS nightly at 02:00.
-- Hourly PSI check writes `artifacts/retrain_requested` if drift > 0.25.
-- Hook your CI/CD to detect that file and run `make train` to retrain and redeploy.
+    ```bash
+    make build
+    ```
 
+    or
 
-## 5) Metrics & auto‑rollback
-- Gateway exposes `/metrics_json` with p95 latency and a toy KPI.
-- Watchdog watches p95 vs `SLA_P95_MS` (default 150 ms) and KPI; auto‑rolls back to 100% champion after 3 bad intervals.
+    ```bash
+    docker compose build
+    ```
 
+2.  **Start the services:**
 
-## 6) Data
-- Put your Steam user‑game interactions under `./data/`. Adapt `models/two_tower_train.py` to load real data.
+    ```bash
+    make up
+    ```
 
+    or
 
-## 7) Notes
-- TorchServe handlers are minimal; replace with real rerankers (e.g., cross‑encoder or feature MLP).
-- This template avoids heavy infra (Prometheus/Kafka/Airflow). You can plug them in later.
-- Windows users: run from WSL2 for best Docker experience.
+    ```bash
+    docker compose up -d
+    ```
+
+    This will start the FastAPI backend and the Streamlit dashboard.
+
+    -   FastAPI API is available at `http://localhost:8000`
+    -   Streamlit dashboard is available at `http://localhost:8501`
+
+3.  **Stopping the services:**
+
+    ```bash
+    make down
+    ```
+
+    or
+
+    ```bash
+    docker compose down
+    ```
+
+### Training the Model and Building the Index
+
+(Note: You need to have data in the `data/processed` directory for this to work.)
+
+1.  **Train the model:**
+
+    ```bash
+    make train
+    ```
+
+2.  **Build the FAISS index:**
+
+    ```bash
+    make index
+    ```
+
+### API
+
+The API has a `/recommend` endpoint that accepts POST requests with the following format:
+
+```json
+{
+  "user_id": "u_123",
+  "time_played": {"g_221": 120.0, "g_501": 8.0},
+  "genres": ["rpg", "roguelike", "pixel-art"],
+  "achievements": {"g_221": 15, "g_777": 2},
+  "top_k": 10
+}
+```

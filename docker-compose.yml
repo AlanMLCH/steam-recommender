@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  api:
+    build: { context: ., dockerfile: docker/Dockerfile.api }
+    ports: ["8000:8000"]
+    volumes:
+      - ./artifacts:/app/artifacts
+      - ./models:/app/models
+  dashboard:
+    build: { context: ., dockerfile: docker/Dockerfile.dashboard }
+    environment:
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+    ports: ["8501:8501"]
+    depends_on: [api]

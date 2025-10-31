@@ -1,3 +1,0 @@
-# Nightly index build at 02:00, hourly drift check
-0 2 * * * root python /workspace/scripts/build_index.py >> /var/log/cron.log 2>&1
-0 * * * * root python /workspace/scripts/psi.py --baseline /workspace/artifacts/baseline.json --current /workspace/artifacts/current.json --threshold 0.25 >> /var/log/cron.log 2>&1
