@@ -35,24 +35,25 @@ def preprocess_games(raw_data_path, processed_data_path):
     items_df.to_csv(items_file, index=False)
     print(f"Saved {len(items_df)} items to {items_file}")
 
-def create_dummy_interactions(processed_data_path):
-    """Creates a dummy interactions file."""
-    interactions_file = processed_data_path / "interactions.csv"
+def preprocess_interactions(raw_data_path, processed_data_path):
+    """Processes the raw interactions data."""
+    interactions_file = raw_data_path / "interactions.json"
+    processed_interactions_file = processed_data_path / "interactions.csv"
 
-    if interactions_file.exists():
-        print("Dummy interactions data already exists. Skipping creation.")
+    if processed_interactions_file.exists():
+        print("Processed interactions data already exists. Skipping preprocessing.")
         return
 
-    print("Creating dummy interactions data...")
-    # Create a small dummy dataset
-    interactions = {
-        "user_id": ["u_1", "u_1", "u_2", "u_2", "u_3"],
-        "item_id": [220, 570, 730, 570, 220],
-    }
-    interactions_df = pd.DataFrame(interactions)
-    interactions_df.to_csv(interactions_file, index=False)
-    print(f"Saved dummy interactions to {interactions_file}")
-    print("NOTE: This is a dummy dataset. You should replace it with real user-item interaction data.")
+    if not interactions_file.exists():
+        print("Raw interactions data not found. Please run `scripts/get_data.py` first.")
+        return
+
+    with open(interactions_file, "r") as f:
+        interactions_data = json.load(f)
+
+    interactions_df = pd.DataFrame(interactions_data)
+    interactions_df.to_csv(processed_interactions_file, index=False)
+    print(f"Saved {len(interactions_df)} interactions to {processed_interactions_file}")
 
 def main():
     """Main function to preprocess the data."""
@@ -61,7 +62,7 @@ def main():
     processed_data_path.mkdir(parents=True, exist_ok=True)
 
     preprocess_games(raw_data_path, processed_data_path)
-    create_dummy_interactions(processed_data_path)
+    preprocess_interactions(raw_data_path, processed_data_path)
 
 if __name__ == "__main__":
     main()

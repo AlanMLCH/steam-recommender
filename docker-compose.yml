@@ -6,9 +6,20 @@ services:
     volumes:
       - ./artifacts:/app/artifacts
       - ./models:/app/models
+      - ./src:/app/src
   dashboard:
     build: { context: ., dockerfile: docker/Dockerfile.dashboard }
     environment:
       - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
     ports: ["8501:8501"]
     depends_on: [api]
+    volumes:
+      - ./dashboard:/app/dashboard
+  pipeline:
+    build: { context: ., dockerfile: docker/Dockerfile.pipeline }
+    volumes:
+      - ./data:/app/data
+      - ./scripts:/app/scripts
+    environment:
+      - STEAM_API_KEY=${STEAM_API_KEY}
+      - STEAM_USER_ID=${STEAM_USER_ID}

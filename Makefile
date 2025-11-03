@@ -10,8 +10,7 @@ down:
 	docker compose down
 
 data:
-	python scripts/get_data.py
-	python scripts/preprocess_data.py
+	docker compose run --rm pipeline
 
 train:
 	docker run --rm -v $(PWD):/app -w /app --entrypoint python \
