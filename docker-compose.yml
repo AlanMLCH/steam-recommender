@@ -11,4 +11,21 @@ services:
         source: ./src
         target: /app/src
 
-    command: ["python", "-m", "src.pipeline", "--step", "all"]
+    command: ["python", "-m", "src.data_pipeline.pipeline", "--step", "all"]
+  trainer:
+    build: .
+    image: game-rec-stage1:latest
+    environment:
+      DATA_DIR: /app/data
+      ARTIFACTS_DIR: /app/artifacts
+      TRAIN_EPOCHS: "5"
+      BATCH_SIZE: "1024"
+      EMBED_DIM: "64"
+      LR: "0.001"
+      VAL_K: "20"
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+    command: ["python", "-m", "src.train.run_training"]
+    depends_on:
+      - pipeline

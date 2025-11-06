@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from .config import path_interactions, path_interactions_features, dir_features
+from ..data_pipeline.config import path_interactions, path_interactions_features, dir_features
 
 def load_interactions() -> pd.DataFrame:
     return pd.read_parquet(path_interactions())

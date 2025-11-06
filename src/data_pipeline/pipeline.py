@@ -1,5 +1,6 @@
 import argparse
-from . import extract, validate, feature_engineering
+from . import extract, validate
+from ..features import main as features_main
 
 def parse_args():
     p = argparse.ArgumentParser(description="Stage A pipeline runner")
@@ -12,11 +13,11 @@ def run_step(step: str) -> None:
     elif step == "validate":
         validate.run()
     elif step == "features":
-        feature_engineering.run()
+        features_main.run()
     elif step == "all":
         extract.run()
         validate.run()
-        feature_engineering.run()
+        features_main.run()
 
 def main():
     args = parse_args()
