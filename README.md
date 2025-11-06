@@ -1,98 +1,42 @@
-# Game Recommender System
+# Steam 200k Dataset ETL Pipeline
 
-This project is a game recommender system built with a two-tower model, FAISS for efficient similarity search, a FastAPI backend, and a Streamlit dashboard for interacting with the API.
+This project contains a simple ETL pipeline for the Steam 200k dataset.
 
-## Project Structure
-
-The project is organized into the following directories:
-
-- `configs/`: Configuration files for training and service.
-- `data/`: For storing raw and processed data (ignored by git).
-- `artifacts/`: For storing the FAISS index and other generated files (ignored by git).
-- `models/`: For storing trained model checkpoints (ignored by git).
-- `notebooks/`: Jupyter notebooks for exploration, training, and evaluation.
-- `src/`: Source code for the recommender system.
-- `dashboard/`: The Streamlit dashboard application.
-- `tests/`: Unit tests.
-- `docker/`: Dockerfiles for the different services.
-
-## Getting Started
+## How to run the pipeline
 
 ### Prerequisites
 
-- Docker
-- Docker Compose
-- make (optional, for convenience)
+-   Docker
+-   Docker Compose
 
-### Running the Application
+### 1. Get the data
 
-1.  **Build the Docker images:**
+1.  Download the Steam 200k dataset from Kaggle: [https://www.kaggle.com/tamber/steam-video-games](https://www.kaggle.com/tamber/steam-video-games)
+2.  Place the `steam-200k.csv` file in the `data/raw` directory.
 
-    ```bash
-    make build
-    ```
+### 2. Build the Docker image
 
-    or
-
-    ```bash
-    docker compose build
-    ```
-
-2.  **Start the services:**
-
-    ```bash
-    make up
-    ```
-
-    or
-
-    ```bash
-    docker compose up -d
-    ```
-
-    This will start the FastAPI backend and the Streamlit dashboard.
-
-    -   FastAPI API is available at `http://localhost:8000`
-    -   Streamlit dashboard is available at `http://localhost:8501`
-
-3.  **Stopping the services:**
-
-    ```bash
-    make down
-    ```
-
-    or
-
-    ```bash
-    docker compose down
-    ```
-
-### Training the Model and Building the Index
-
-(Note: You need to have data in the `data/processed` directory for this to work.)
-
-1.  **Train the model:**
-
-    ```bash
-    make train
-    ```
-
-2.  **Build the FAISS index:**
-
-    ```bash
-    make index
-    ```
-
-### API
-
-The API has a `/recommend` endpoint that accepts POST requests with the following format:
-
-```json
-{
-  "user_id": "u_123",
-  "time_played": {"g_221": 120.0, "g_501": 8.0},
-  "genres": ["rpg", "roguelike", "pixel-art"],
-  "achievements": {"g_221": 15, "g_777": 2},
-  "top_k": 10
-}
+```bash
+docker compose build
 ```
+
+### 3. Run the pipeline
+
+To run the entire ETL pipeline, use the following command:
+
+```bash
+docker compose run --rm pipeline
+```
+
+This will run all the steps of the pipeline: extract, validate, and features.
+
+### 4. Output
+
+The pipeline will create the following files and directories inside the `data` directory:
+
+-   `data/processed/interactions.parquet`
+-   `data/lookups/user_lookup.parquet`
+-   `data/lookups/item_lookup.parquet`
+-   `data/reports/ingest_report.json`
+-   `data/reports/validation_report.json`
+-   `data/features/interactions_features.parquet`

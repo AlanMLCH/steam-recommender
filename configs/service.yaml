@@ -1,3 +1,0 @@
-model_path: models/model.pt
-index_path: artifacts/index.faiss
-genre_vocab: ["rpg","fps","roguelike","racing","strategy","simulation","sports","adventure","puzzle"]

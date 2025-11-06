@@ -1,9 +1,0 @@
-seed: 42
-batch_size: 1024
-epochs: 2
-lr: 0.001
-embedding_dim: 64
-index:
-  type: flat   # flat | ivfpq
-  nlist: 256
-  pq_m: 8
