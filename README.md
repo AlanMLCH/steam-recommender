@@ -6,6 +6,34 @@ This project contains a complete pipeline for building a game recommender system
 2.  **Training Pipeline**: Trains a two-tower recommendation model and creates a FAISS index for efficient similarity search.
 3.  **Inference API**: Serves recommendations through a FastAPI application.
 
+## Pipeline Overview
+
+```mermaid
+graph TD
+    subgraph Data Pipeline
+        A[Raw Data steam-200k.csv] --> B{Extract & Transform};
+        B --> C{Validate};
+        C --> D[Processed Data interactions.parquet];
+    end
+
+    subgraph Training Pipeline
+        D --> E{Feature Engineering};
+        E --> F[Features interactions_features.parquet];
+        F --> G{Train/Val Split};
+        G --> H{Train Model};
+        H --> I[Item Embeddings item_emb.npy];
+        I --> J{Build FAISS Index};
+        J --> K[FAISS Index index.faiss];
+    end
+
+    subgraph Inference API
+        K --> L{FastAPI Application};
+        I --> L;
+        M[User Request] --> L;
+        L --> N[Recommendations];
+    end
+```
+
 ## How to run the full pipeline
 
 ### Prerequisites
