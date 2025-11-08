@@ -29,3 +29,17 @@ services:
     command: ["python", "-m", "src.train.run_training"]
     depends_on:
       - pipeline
+  api:
+    build: .
+    image: game-rec-stage1:latest
+    environment:
+      DATA_DIR: /app/data
+      ARTIFACTS_DIR: /app/artifacts
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+    command: ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    depends_on:
+      - trainer

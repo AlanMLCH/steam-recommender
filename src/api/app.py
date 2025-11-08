@@ -1,10 +1,3 @@
-1) Add API files
-src/
-  api/
-    __init__.py
-    app.py
-
-src/api/app.py
 from pathlib import Path
 from typing import List, Optional, Dict
 import os
@@ -121,61 +114,3 @@ def recommend(req: RecommendRequest):
     # Case B: cold start → popularity
     pop = POPULAR.head(top_k)
     return RecommendResponse(items=[{"game_id": int(r.game_id), "score": float(r.score)} for r in pop.itertuples()])
-
-2) Extend requirements
-
-Append to requirements.txt:
-
-fastapi>=0.111.0
-uvicorn>=0.30.0
-faiss-cpu==1.8.0
-
-
-(You already added faiss-cpu for training; fine to keep here too.)
-
-3) Update docker-compose.yml
-
-Add a new api service and mount data + artifacts:
-
-services:
-  pipeline:
-    build: .
-    image: game-rec-stage1:latest
-    environment:
-      DATA_DIR: /app/data
-    volumes:
-      - ./data:/app/data
-    command: ["python", "src/pipeline.py", "--step", "all"]
-
-  trainer:
-    build: .
-    image: game-rec-stage1:latest
-    environment:
-      DATA_DIR: /app/data
-      ARTIFACTS_DIR: /app/artifacts
-      TRAIN_EPOCHS: "5"
-      BATCH_SIZE: "1024"
-      EMBED_DIM: "64"
-      LR: "0.001"
-      VAL_K: "20"
-    volumes:
-      - ./data:/app/data
-      - ./artifacts:/app/artifacts
-    command: ["python", "src/train/run_training.py"]
-    depends_on:
-      - pipeline
-
-  api:
-    build: .
-    image: game-rec-stage1:latest
-    environment:
-      DATA_DIR: /app/data
-      ARTIFACTS_DIR: /app/artifacts
-    volumes:
-      - ./data:/app/data
-      - ./artifacts:/app/artifacts
-    command: ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
-    ports:
-      - "8000:8000"
-    depends_on:
-      - trainer

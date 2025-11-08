@@ -6,3 +6,5 @@ torch>=2.3.0
 faiss-cpu==1.8.0
 scikit-learn>=1.4.0
 tqdm>=4.66.0
+fastapi>=0.111.0
+uvicorn>=0.30.0
