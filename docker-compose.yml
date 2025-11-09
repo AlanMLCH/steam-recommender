@@ -10,6 +10,8 @@ services:
       - type: bind
         source: ./src
         target: /app/src
+    networks:
+      - steam-rec-net
 
     command: ["python", "-m", "src.data_pipeline.pipeline", "--step", "all"]
   trainer:
@@ -26,6 +28,8 @@ services:
     volumes:
       - ./data:/app/data
       - ./artifacts:/app/artifacts
+    networks:
+      - steam-rec-net
     command: ["python", "-m", "src.train.run_training"]
     depends_on:
       - pipeline
@@ -41,5 +45,12 @@ services:
     command: ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
     ports:
       - "8000:8000"
+    networks:
+      - steam-rec-net
     depends_on:
       - trainer
+
+networks:
+  steam-rec-net:
+    driver: bridge
+    name: steam-rec-net

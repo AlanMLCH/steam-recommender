@@ -62,6 +62,18 @@ This command will:
 
 The API will be available at `http://localhost:8000`.
 
+## Dashboard
+
+This project also includes an interactive dashboard built with Streamlit to easily get recommendations.
+
+To run the dashboard, first make sure the main services are running (`docker-compose up --build`). Then, in a separate terminal, run the following command:
+
+```bash
+docker-compose -f docker-compose.dashboard.yml up --build
+```
+
+The dashboard will be available at `http://localhost:8501`.
+
 ## Running stages individually
 
 You can also run each stage of the pipeline individually.
@@ -106,6 +118,16 @@ docker-compose up api
 ```
 
 The API will be available at `http://localhost:8000`. You can see the API documentation at `http://localhost:8000/docs`.
+
+### Dashboard
+
+To start the dashboard (after the API is running):
+
+```bash
+docker-compose up dashboard
+```
+
+The dashboard will be available at `http://localhost:8501`.
 
 ## API Endpoints
 

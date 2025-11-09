@@ -5,8 +5,9 @@ import faiss
 
 def build_flat_index(emb: np.ndarray, out_path: Path):
     dim = emb.shape[1]
-    index = faiss.IndexFlatIP(dim)   # cosine via normalized emb (we'll skip norm for MVP)
-    index.add(emb.astype(np.float32))
+    emb_normalized = emb / np.linalg.norm(emb, axis=1, keepdims=True)
+    index = faiss.IndexFlatIP(dim)   # cosine via normalized emb
+    index.add(emb_normalized.astype(np.float32))
     faiss.write_index(index, str(out_path))
 
 def run(artifacts_dir: Path):

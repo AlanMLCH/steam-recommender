@@ -1,0 +1,44 @@
+# Docker
+.dockerignore
+Dockerfile
+
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Data
+data/
+
+# Artifacts
+artifacts/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
