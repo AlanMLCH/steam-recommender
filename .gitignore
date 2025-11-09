@@ -10,10 +10,7 @@ env/
 venv/
 
 # Data
-data/processed/
-data/reports/
-data/lookups/
-data/features/
+data/
 
 # Artifacts
 artifacts/
