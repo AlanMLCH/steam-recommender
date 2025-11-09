@@ -41,6 +41,40 @@ graph TD
 -   Docker
 -   Docker Compose
 
+### Makefile Usage
+
+This project includes a `Makefile` to simplify the Docker commands.
+
+-   `make build`: Builds the Docker image.
+-   `make pipeline`: Runs the data pipeline.
+-   `make train`: Runs the training pipeline.
+-   `make up`: Starts the dashboard and API services.
+-   `make down`: Stops the dashboard and API services.
+
+### Local Development
+
+If you prefer to run the project locally without Docker, you can set up a Python virtual environment.
+
+1.  **Create a virtual environment:**
+    ```bash
+    python -m venv venv
+    ```
+
+2.  **Activate the environment:**
+    -   On Windows:
+        ```bash
+        .\venv\Scripts\activate
+        ```
+    -   On macOS and Linux:
+        ```bash
+        source venv/bin/activate
+        ```
+
+3.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
 ### 1. Get the data
 
 1.  Download the Steam 200k dataset from Kaggle: [https://www.kaggle.com/tamber/steam-video-games](https://www.kaggle.com/tamber/steam-video-games)

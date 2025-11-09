@@ -15,6 +15,9 @@ data/reports/
 data/lookups/
 data/features/
 
+# Artifacts
+artifacts/
+
 # Other
 .DS_Store
 .gemini/

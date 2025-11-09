@@ -2,7 +2,9 @@ import os
 from pathlib import Path
 
 def data_dir() -> Path:
-    root = os.environ.get("DATA_DIR", "/app/data")
+    # Default to a path relative to this file's location
+    default_path = Path(__file__).parent.parent.parent / 'data'
+    root = os.environ.get("DATA_DIR", default_path)
     return Path(root)
 
 def path_raw_csv() -> Path:

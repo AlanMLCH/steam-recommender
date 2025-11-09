@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from typing import Tuple, Dict
 import pandas as pd
+import numpy as np
 from .config import (
     path_raw_csv, dir_processed, dir_lookups, path_interactions,
     path_user_lookup, path_item_lookup, path_ingest_report
@@ -21,6 +22,22 @@ def normalize_titles(df: pd.DataFrame) -> pd.DataFrame:
     )
     return out
 
+def downsample_popular_items(purch: pd.DataFrame, threshold: float = 1e-3) -> pd.DataFrame:
+    """Downsample popular items to reduce popularity bias."""
+    game_counts = purch["game_title"].value_counts()
+    total_purchases = len(purch)
+    game_freq = game_counts / total_purchases
+
+    # Calculate sampling probability
+    prob = 1 - np.sqrt(threshold / game_freq)
+    prob = prob.to_dict()
+
+    # Apply sampling
+    sampled_purch = purch.copy()
+    sampled_purch["prob"] = sampled_purch["game_title"].map(prob)
+    sampled_purch = sampled_purch.loc[np.random.random(len(sampled_purch)) < sampled_purch["prob"]]
+    return sampled_purch.drop(columns=["prob"])
+
 def aggregate_interactions(df: pd.DataFrame) -> pd.DataFrame:
     d = df.copy()
     d["behavior"] = d["behavior"].str.lower().str.strip()
@@ -35,8 +52,9 @@ def aggregate_interactions(df: pd.DataFrame) -> pd.DataFrame:
     purch = (
         d.loc[d["behavior"] == "purchase", ["user", "game_title"]]
         .drop_duplicates()
-        .assign(purchased_flag=1)
     )
+    purch = downsample_popular_items(purch)
+    purch = purch.assign(purchased_flag=1)
 
     agg = play.merge(purch, how="left", on=["user", "game_title"])
     agg["purchased_flag"] = agg["purchased_flag"].fillna(0).astype(int)

@@ -7,8 +7,24 @@ services:
       - "8501:8501"
     networks:
       - steam-rec-net
+    depends_on:
+      - api
+  api:
+    build: .
+    image: game-rec-stage1:latest
+    environment:
+      DATA_DIR: /app/data
+      ARTIFACTS_DIR: /app/artifacts
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+    command: ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    networks:
+      - steam-rec-net
 
 networks:
   steam-rec-net:
-    external:
-      name: steam-rec-net
+    driver: bridge
+    name: steam-rec-net
