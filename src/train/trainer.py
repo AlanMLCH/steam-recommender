@@ -9,12 +9,6 @@ from tqdm import tqdm
 from .metrics import recall_at_k, ndcg_at_k
 from .model import TwoTower
 
-def _env_int(name, default):
-    return int(os.environ.get(name, str(default)))
-
-def _env_float(name, default):
-    return float(os.environ.get(name, str(default)))
-
 def _get_counts(users_df, items_df):
     n_users = users_df["user_id"].nunique()
     n_items = items_df["game_id"].nunique()
