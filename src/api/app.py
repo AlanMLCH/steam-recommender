@@ -29,6 +29,15 @@ class RecommendResponseItem(BaseModel):
 class RecommendResponse(BaseModel):
     items: List[RecommendResponseItem]
 
+
+class SearchResponseItem(BaseModel):
+    game_id: int
+    title: str
+
+class SearchResponse(BaseModel):
+    items: List[SearchResponseItem]
+
+
 # --------- App ---------
 app = FastAPI(title="Game Recs API", version="0.1.0")
 
@@ -140,3 +149,25 @@ def recommend(req: RecommendRequest):
     pop = POPULAR.head(top_k)
     recs = pop.merge(ITEMS_DF, on="game_id")
     return RecommendResponse(items=[{"game_id": int(r.game_id), "score": float(r.score), "title": r.title} for r in recs.itertuples()])
+
+
+@app.get("/games/search", response_model=SearchResponse)
+def search_games(q: str, limit: int = 10):
+    """Search for games by title."""
+    if not q:
+        return SearchResponse(items=[])
+    
+    matches = ITEMS_DF[ITEMS_DF["title"].str.lower().str.startswith(q.lower())]
+    
+    # Ensure limit is not greater than the number of matches
+    limit = min(limit, len(matches))
+    
+    top_matches = matches.head(limit)
+    
+    results = [
+        SearchResponseItem(game_id=row["game_id"], title=row["title"])
+        for _, row in top_matches.iterrows()
+    ]
+    
+    return SearchResponse(items=results)
+

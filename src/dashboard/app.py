@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 
 # API endpoint
-API_URL = "http://api:8000/recommend"
+API_BASE_URL = "http://api:8000"
 
 def get_recommendations(game_ids, top_k=10, exclude_seen=True):
     """Calls the recommendation API."""
@@ -13,37 +13,63 @@ def get_recommendations(game_ids, top_k=10, exclude_seen=True):
         "exclude_seen": exclude_seen
     }
     try:
-        response = requests.post(API_URL, json=payload)
-        response.raise_for_status()  # Raise an exception for bad status codes
+        response = requests.post(f"{API_BASE_URL}/recommend", json=payload)
+        response.raise_for_status()
         return response.json()["items"]
     except requests.exceptions.RequestException as e:
-        st.error(f"Error calling API: {e}")
+        st.error(f"Error calling recommend API: {e}")
+        return []
+
+def search_games(query: str, limit: int = 10):
+    """Calls the game search API."""
+    if not query:
+        return []
+    try:
+        response = requests.get(f"{API_BASE_URL}/games/search", params={"q": query, "limit": limit})
+        response.raise_for_status()
+        return response.json()["items"]
+    except requests.exceptions.RequestException as e:
+        st.error(f"Error calling search API: {e}")
         return []
 
 def main():
     st.title("Steam Game Recommender")
 
+    # --- Initialize session state for selected games ---
+    if 'selected_games' not in st.session_state:
+        st.session_state.selected_games = {}  # Store as dict {title: game_id}
+
     # --- Game Selection ---
     st.header("Select Games You Like")
-    
 
-    mock_games = {
-        "Half-Life 2": 220,
-        "Portal 2": 620,
-        "Left 4 Dead 2": 550,
-        "Counter-Strike: Global Offensive": 730,
-        "The Elder Scrolls V: Skyrim": 72850,
-        "Terraria": 105600,
-        "Stardew Valley": 413150,
-        "Sid Meier's Civilization V": 8930,
-    }
-    
-    selected_titles = st.multiselect(
-        "Choose one or more games:",
-        options=list(mock_games.keys())
-    )
-    
-    selected_ids = [mock_games[title] for title in selected_titles]
+    # --- Search for games ---
+    search_query = st.text_input("Search for games to add to your list:", "")
+    if search_query:
+        search_results = search_games(search_query)
+        if search_results:
+            st.write("Search Results:")
+            for game in search_results:
+                title = game["title"]
+                game_id = game["game_id"]
+                if st.button(f"Add '{title}'"):
+                    st.session_state.selected_games[title] = game_id
+                    st.rerun() # Rerun to update the display of selected games
+
+    # --- Display selected games ---
+    st.subheader("Your selected games:")
+    if not st.session_state.selected_games:
+        st.info("No games selected yet. Use the search bar above to find and add games.")
+    else:
+        for title, game_id in list(st.session_state.selected_games.items()):
+            col1, col2 = st.columns([4, 1])
+            with col1:
+                st.write(f"- {title} (ID: {game_id})")
+            with col2:
+                if st.button(f"Remove##{game_id}", key=f"remove_{game_id}"):
+                    del st.session_state.selected_games[title]
+                    st.rerun()
+
+    selected_ids = list(st.session_state.selected_games.values())
 
     # --- Recommendation Parameters ---
     st.sidebar.header("Settings")
@@ -57,22 +83,17 @@ def main():
         else:
             with st.spinner("Fetching recommendations..."):
                 recs = get_recommendations(selected_ids, top_k, exclude_seen)
-                
+
                 if recs:
                     st.header("Recommended for you:")
-                    
-                    # Display results in a more appealing way
                     df = pd.DataFrame(recs)
-                    
                     for _, row in df.iterrows():
                         st.subheader(row["title"])
                         st.write(f"**Game ID:** {row['game_id']} | **Score:** {row['score']:.4f}")
-                        # You could add game thumbnails here if you have image URLs
-                        # st.image(get_game_image_url(row['game_id']))
-                    
                     st.success("Done!")
                 else:
                     st.error("Could not retrieve recommendations.")
+
 
 if __name__ == "__main__":
     main()
